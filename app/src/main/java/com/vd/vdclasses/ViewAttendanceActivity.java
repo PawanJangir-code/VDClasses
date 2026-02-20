@@ -15,8 +15,10 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ViewAttendanceActivity extends AppCompatActivity {
 
@@ -40,12 +42,34 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         tvAttendanceDate.setText("Date: " + today);
 
         attendanceList = new ArrayList<>();
-        adapter = new AttendanceAdapter(attendanceList);
+        adapter = new AttendanceAdapter(attendanceList, new HashMap<>());
 
         recyclerAttendance.setLayoutManager(new LinearLayoutManager(this));
         recyclerAttendance.setAdapter(adapter);
 
-        loadAttendance(today);
+        loadStudentNamesThenAttendance(today);
+    }
+
+    private void loadStudentNamesThenAttendance(String date) {
+        // First load all student names, then load attendance
+        db.collection("students")
+                .get()
+                .addOnSuccessListener(studentSnapshots -> {
+                    Map<String, String> nameMap = new HashMap<>();
+                    for (QueryDocumentSnapshot doc : studentSnapshots) {
+                        String email = doc.getString("email");
+                        String name = doc.getString("name");
+                        if (email != null) {
+                            nameMap.put(email, name);
+                        }
+                    }
+                    adapter.setNameMap(nameMap);
+                    loadAttendance(date);
+                })
+                .addOnFailureListener(e -> {
+                    // Fall back to loading attendance without names
+                    loadAttendance(date);
+                });
     }
 
     private void loadAttendance(String date) {
@@ -69,7 +93,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load attendance", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to load attendance: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 }

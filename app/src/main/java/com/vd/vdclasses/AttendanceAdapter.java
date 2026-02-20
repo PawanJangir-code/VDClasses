@@ -12,13 +12,20 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.AttendanceViewHolder> {
 
     private final List<AttendanceModel> attendanceList;
+    private Map<String, String> nameMap;
 
-    public AttendanceAdapter(List<AttendanceModel> attendanceList) {
+    public AttendanceAdapter(List<AttendanceModel> attendanceList, Map<String, String> nameMap) {
         this.attendanceList = attendanceList;
+        this.nameMap = nameMap;
+    }
+
+    public void setNameMap(Map<String, String> nameMap) {
+        this.nameMap = nameMap;
     }
 
     @NonNull
@@ -31,7 +38,10 @@ public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.At
     @Override
     public void onBindViewHolder(@NonNull AttendanceViewHolder holder, int position) {
         AttendanceModel attendance = attendanceList.get(position);
-        holder.tvAttendanceEmail.setText(attendance.getEmail());
+
+        String email = attendance.getEmail();
+        String name = nameMap != null ? nameMap.get(email) : null;
+        holder.tvAttendanceEmail.setText(name != null && !name.isEmpty() ? name : email);
 
         SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
         String time = "Checked in at " + sdf.format(new Date(attendance.getTimestamp()));

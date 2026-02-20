@@ -68,9 +68,13 @@ public class ViewStudentsActivity extends AppCompatActivity {
                         fullStudentList.add(student);
                     }
                     Collections.sort(fullStudentList, (a, b) -> {
-                        String emailA = a.getEmail() != null ? a.getEmail().toLowerCase() : "";
-                        String emailB = b.getEmail() != null ? b.getEmail().toLowerCase() : "";
-                        return emailA.compareTo(emailB);
+                        String nameA = a.getName() != null && !a.getName().isEmpty()
+                                ? a.getName().toLowerCase()
+                                : (a.getEmail() != null ? a.getEmail().toLowerCase() : "");
+                        String nameB = b.getName() != null && !b.getName().isEmpty()
+                                ? b.getName().toLowerCase()
+                                : (b.getEmail() != null ? b.getEmail().toLowerCase() : "");
+                        return nameA.compareTo(nameB);
                     });
                     filterStudents(etSearchStudents.getText().toString());
                 })
@@ -84,7 +88,8 @@ public class ViewStudentsActivity extends AppCompatActivity {
         String lowerQuery = query.toLowerCase().trim();
         for (StudentModel student : fullStudentList) {
             String email = student.getEmail() != null ? student.getEmail().toLowerCase() : "";
-            if (lowerQuery.isEmpty() || email.contains(lowerQuery)) {
+            String name = student.getName() != null ? student.getName().toLowerCase() : "";
+            if (lowerQuery.isEmpty() || name.contains(lowerQuery) || email.contains(lowerQuery)) {
                 studentList.add(student);
             }
         }

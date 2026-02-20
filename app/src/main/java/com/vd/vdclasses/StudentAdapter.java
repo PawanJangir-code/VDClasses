@@ -31,6 +31,14 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
     @Override
     public void onBindViewHolder(@NonNull StudentViewHolder holder, int position) {
         StudentModel student = studentList.get(position);
+
+        String name = student.getName();
+        if (name != null && !name.isEmpty()) {
+            holder.tvStudentName.setText(name);
+        } else {
+            holder.tvStudentName.setText(student.getEmail());
+        }
+
         holder.tvStudentEmail.setText(student.getEmail());
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
@@ -44,10 +52,11 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
     }
 
     static class StudentViewHolder extends RecyclerView.ViewHolder {
-        TextView tvStudentEmail, tvStudentJoinDate;
+        TextView tvStudentName, tvStudentEmail, tvStudentJoinDate;
 
         StudentViewHolder(@NonNull View itemView) {
             super(itemView);
+            tvStudentName = itemView.findViewById(R.id.tvStudentName);
             tvStudentEmail = itemView.findViewById(R.id.tvStudentEmail);
             tvStudentJoinDate = itemView.findViewById(R.id.tvStudentJoinDate);
         }
