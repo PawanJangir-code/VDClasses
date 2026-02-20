@@ -69,9 +69,16 @@ public class ManageVideosActivity extends AppCompatActivity {
                     intent.putExtra("documentId", documentId);
                     intent.putExtra("title", video.getTitle());
                     intent.putExtra("subject", video.getSubject());
-                    intent.putExtra("youtubeUrl", video.getYoutubeUrl());
+                    intent.putExtra("videoUrl", video.getVideoUrl());
                     startActivity(intent);
                 });
+
+        adapter.setOnVideoClickListener(video -> {
+            Intent intent = new Intent(this, VideoPlayerActivity.class);
+            intent.putExtra("videoUrl", video.getVideoUrl());
+            intent.putExtra("title", video.getTitle());
+            startActivity(intent);
+        });
 
         recyclerVideos.setLayoutManager(new LinearLayoutManager(this));
         recyclerVideos.setAdapter(adapter);
@@ -115,7 +122,7 @@ public class ManageVideosActivity extends AppCompatActivity {
                     filterVideos(etSearchVideos.getText().toString());
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load videos", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to load videos: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 

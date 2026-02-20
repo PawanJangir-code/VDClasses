@@ -26,12 +26,22 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
         void onEdit(String documentId, VideoModel video);
     }
 
+    public interface OnVideoClickListener {
+        void onClick(VideoModel video);
+    }
+
+    private OnVideoClickListener clickListener;
+
     public VideoAdapter(List<VideoModel> videoList, List<String> documentIds,
                         OnVideoDeleteListener deleteListener, OnVideoEditListener editListener) {
         this.videoList = videoList;
         this.documentIds = documentIds;
         this.deleteListener = deleteListener;
         this.editListener = editListener;
+    }
+
+    public void setOnVideoClickListener(OnVideoClickListener listener) {
+        this.clickListener = listener;
     }
 
     @NonNull
@@ -58,6 +68,13 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
             int pos = holder.getAdapterPosition();
             if (pos != RecyclerView.NO_POSITION) {
                 editListener.onEdit(documentIds.get(pos), videoList.get(pos));
+            }
+        });
+
+        holder.itemView.setOnClickListener(v -> {
+            int pos = holder.getAdapterPosition();
+            if (pos != RecyclerView.NO_POSITION && clickListener != null) {
+                clickListener.onClick(videoList.get(pos));
             }
         });
     }

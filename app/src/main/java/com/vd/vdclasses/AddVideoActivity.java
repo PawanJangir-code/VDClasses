@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class AddVideoActivity extends AppCompatActivity {
 
-    EditText etVideoTitle, etVideoSubject, etYoutubeUrl;
+    EditText etVideoTitle, etVideoSubject, etVideoUrl;
     Button btnSaveVideo;
     FirebaseFirestore db;
     String documentId;
@@ -27,7 +27,7 @@ public class AddVideoActivity extends AppCompatActivity {
 
         etVideoTitle = findViewById(R.id.etVideoTitle);
         etVideoSubject = findViewById(R.id.etVideoSubject);
-        etYoutubeUrl = findViewById(R.id.etYoutubeUrl);
+        etVideoUrl = findViewById(R.id.etVideoUrl);
         btnSaveVideo = findViewById(R.id.btnSaveVideo);
         db = FirebaseFirestore.getInstance();
 
@@ -40,7 +40,7 @@ public class AddVideoActivity extends AppCompatActivity {
 
             etVideoTitle.setText(getIntent().getStringExtra("title"));
             etVideoSubject.setText(getIntent().getStringExtra("subject"));
-            etYoutubeUrl.setText(getIntent().getStringExtra("youtubeUrl"));
+            etVideoUrl.setText(getIntent().getStringExtra("videoUrl"));
         }
 
         btnSaveVideo.setOnClickListener(v -> saveVideo());
@@ -49,7 +49,7 @@ public class AddVideoActivity extends AppCompatActivity {
     private void saveVideo() {
         String title = etVideoTitle.getText().toString().trim();
         String subject = etVideoSubject.getText().toString().trim();
-        String url = etYoutubeUrl.getText().toString().trim();
+        String url = etVideoUrl.getText().toString().trim();
 
         if (title.isEmpty()) {
             etVideoTitle.setError("Title is required");
@@ -60,7 +60,7 @@ public class AddVideoActivity extends AppCompatActivity {
             return;
         }
         if (url.isEmpty()) {
-            etYoutubeUrl.setError("YouTube URL is required");
+            etVideoUrl.setError("Video URL is required");
             return;
         }
 
@@ -69,7 +69,7 @@ public class AddVideoActivity extends AppCompatActivity {
             Map<String, Object> updates = new HashMap<>();
             updates.put("title", title);
             updates.put("subject", subject);
-            updates.put("youtubeUrl", url);
+            updates.put("videoUrl", url);
 
             db.collection("videos").document(documentId).update(updates)
                     .addOnSuccessListener(aVoid -> {

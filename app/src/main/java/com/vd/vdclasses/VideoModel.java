@@ -4,17 +4,17 @@ public class VideoModel {
 
     private String title;
     private String subject;
-    private String youtubeUrl;
+    private String videoUrl;
     private long createdAt;
 
     // REQUIRED empty constructor for Firestore
     public VideoModel() {
     }
 
-    public VideoModel(String title, String subject, String youtubeUrl) {
+    public VideoModel(String title, String subject, String videoUrl) {
         this.title = title;
         this.subject = subject;
-        this.youtubeUrl = youtubeUrl;
+        this.videoUrl = videoUrl;
         this.createdAt = System.currentTimeMillis();
     }
 
@@ -26,8 +26,8 @@ public class VideoModel {
         return subject;
     }
 
-    public String getYoutubeUrl() {
-        return youtubeUrl;
+    public String getVideoUrl() {
+        return videoUrl;
     }
 
     public long getCreatedAt() {
