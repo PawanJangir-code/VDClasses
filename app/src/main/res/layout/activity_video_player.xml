@@ -32,6 +32,13 @@
             app:show_buffering="when_playing"
             app:use_controller="true" />
 
+        <ProgressBar
+            android:id="@+id/progressLoader"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="#FFFFFF" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"

@@ -3,6 +3,7 @@ package com.vd.vdclasses;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
@@ -12,6 +13,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +22,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private PlayerView playerView;
     private ExoPlayer player;
     private TextView tvPlayerTitle;
+    private ProgressBar progressLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +31,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         playerView = findViewById(R.id.playerView);
         tvPlayerTitle = findViewById(R.id.tvPlayerTitle);
+        progressLoader = findViewById(R.id.progressLoader);
 
         String url = getIntent().getStringExtra("videoUrl");
         String title = getIntent().getStringExtra("title");
@@ -38,6 +42,19 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         player = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(player);
+
+        player.addListener(new Player.Listener() {
+            @Override
+            public void onPlaybackStateChanged(int playbackState) {
+                if (playbackState == Player.STATE_READY) {
+                    progressLoader.setVisibility(View.GONE);
+                } else if (playbackState == Player.STATE_BUFFERING) {
+                    progressLoader.setVisibility(View.VISIBLE);
+                } else if (playbackState == Player.STATE_ENDED) {
+                    progressLoader.setVisibility(View.GONE);
+                }
+            }
+        });
 
         if (url != null && !url.isEmpty()) {
             MediaItem mediaItem = MediaItem.fromUri(Uri.parse(url));
@@ -67,7 +84,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
-                // Let the PlayerView handle single taps (show/hide controls)
                 playerView.performClick();
                 return true;
             }
@@ -125,10 +141,18 @@ public class VideoPlayerActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        if (player != null && !player.isPlaying()) {
+            player.play();
+        }
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         if (player != null) {
-            player.stop();
+            player.pause();
         }
     }
 
