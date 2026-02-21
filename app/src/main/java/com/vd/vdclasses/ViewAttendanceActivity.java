@@ -6,9 +6,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -24,6 +26,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
 
     RecyclerView recyclerAttendance;
     TextView tvAttendanceDate, tvNoAttendance;
+    ShimmerFrameLayout shimmerLayout;
     FirebaseFirestore db;
     List<AttendanceModel> attendanceList;
     AttendanceAdapter adapter;
@@ -36,7 +39,11 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         recyclerAttendance = findViewById(R.id.recyclerAttendance);
         tvAttendanceDate = findViewById(R.id.tvAttendanceDate);
         tvNoAttendance = findViewById(R.id.tvNoAttendance);
+        shimmerLayout = findViewById(R.id.shimmerLayout);
         db = FirebaseFirestore.getInstance();
+
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
 
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         tvAttendanceDate.setText("Date: " + today);
@@ -50,8 +57,25 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         loadStudentNamesThenAttendance(today);
     }
 
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
+
+    private void showShimmer() {
+        shimmerLayout.setVisibility(View.VISIBLE);
+        shimmerLayout.startShimmer();
+        recyclerAttendance.setVisibility(View.GONE);
+    }
+
+    private void hideShimmer() {
+        shimmerLayout.stopShimmer();
+        shimmerLayout.setVisibility(View.GONE);
+    }
+
     private void loadStudentNamesThenAttendance(String date) {
-        // First load all student names, then load attendance
+        showShimmer();
         db.collection("students")
                 .get()
                 .addOnSuccessListener(studentSnapshots -> {
@@ -67,7 +91,6 @@ public class ViewAttendanceActivity extends AppCompatActivity {
                     loadAttendance(date);
                 })
                 .addOnFailureListener(e -> {
-                    // Fall back to loading attendance without names
                     loadAttendance(date);
                 });
     }
@@ -83,6 +106,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
                         attendanceList.add(record);
                     }
                     adapter.notifyDataSetChanged();
+                    hideShimmer();
 
                     if (attendanceList.isEmpty()) {
                         tvNoAttendance.setVisibility(View.VISIBLE);
@@ -93,6 +117,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> {
+                    hideShimmer();
                     Toast.makeText(this, "Failed to load attendance: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }

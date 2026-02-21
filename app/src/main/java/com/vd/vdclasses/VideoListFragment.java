@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -26,6 +27,8 @@ public class VideoListFragment extends Fragment {
 
     private RecyclerView rvVideos;
     private ChipGroup chipGroupSubjects;
+    private ShimmerFrameLayout shimmerLayout;
+    private View contentLayout;
     private FirebaseFirestore db;
 
     private final List<VideoModel> allVideos = new ArrayList<>();
@@ -46,6 +49,8 @@ public class VideoListFragment extends Fragment {
 
         rvVideos = view.findViewById(R.id.rvVideos);
         chipGroupSubjects = view.findViewById(R.id.chipGroupSubjects);
+        shimmerLayout = view.findViewById(R.id.shimmerLayout);
+        contentLayout = view.findViewById(R.id.contentLayout);
         db = FirebaseFirestore.getInstance();
 
         adapter = new StudentVideoAdapter(filteredVideos, video -> {
@@ -53,12 +58,26 @@ public class VideoListFragment extends Fragment {
             intent.putExtra("videoUrl", video.getVideoUrl());
             intent.putExtra("title", video.getTitle());
             startActivity(intent);
+            requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
 
         rvVideos.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvVideos.setAdapter(adapter);
 
+        showShimmer();
         loadVideos();
+    }
+
+    private void showShimmer() {
+        shimmerLayout.setVisibility(View.VISIBLE);
+        shimmerLayout.startShimmer();
+        contentLayout.setVisibility(View.GONE);
+    }
+
+    private void hideShimmer() {
+        shimmerLayout.stopShimmer();
+        shimmerLayout.setVisibility(View.GONE);
+        contentLayout.setVisibility(View.VISIBLE);
     }
 
     private void loadVideos() {
@@ -79,6 +98,7 @@ public class VideoListFragment extends Fragment {
 
                     buildSubjectChips(subjects);
                     applyFilter();
+                    hideShimmer();
                 });
     }
 
@@ -122,11 +142,10 @@ public class VideoListFragment extends Fragment {
 
         adapter.notifyDataSetChanged();
 
-        // Update chip checked states
         for (int i = 0; i < chipGroupSubjects.getChildCount(); i++) {
             Chip chip = (Chip) chipGroupSubjects.getChildAt(i);
             if (selectedSubject == null) {
-                chip.setChecked(i == 0); // "All" chip
+                chip.setChecked(i == 0);
             } else {
                 chip.setChecked(selectedSubject.equals(chip.getText().toString()));
             }

@@ -16,6 +16,7 @@ import java.util.Locale;
 public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentViewHolder> {
 
     private final List<StudentModel> studentList;
+    private final RecyclerViewAnimator animator = new RecyclerViewAnimator();
 
     public StudentAdapter(List<StudentModel> studentList) {
         this.studentList = studentList;
@@ -44,6 +45,8 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
         String joinDate = "Joined: " + sdf.format(new Date(student.getCreatedAt()));
         holder.tvStudentJoinDate.setText(joinDate);
+
+        animator.animateItem(holder.itemView, position);
     }
 
     @Override

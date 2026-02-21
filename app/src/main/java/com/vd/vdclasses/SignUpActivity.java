@@ -36,6 +36,7 @@ public class SignUpActivity extends AppCompatActivity {
 
         tvGoToSignIn.setOnClickListener(v -> {
             startActivity(new Intent(this, SignInActivity.class));
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             finish();
         });
     }
@@ -68,6 +69,7 @@ public class SignUpActivity extends AppCompatActivity {
                                     Intent intent = new Intent(this, ProfileSetupActivity.class);
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                     startActivity(intent);
+                                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(this, "Failed to create student record",
@@ -79,5 +81,11 @@ public class SignUpActivity extends AppCompatActivity {
                                 Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }

@@ -21,23 +21,38 @@ public class AdminDashboardActivity extends AppCompatActivity {
         MaterialCardView cardLogout = findViewById(R.id.cardLogout);
 
         cardManageVideos.setOnClickListener(v -> {
-            startActivity(new Intent(this, ManageVideosActivity.class));
+            RecyclerViewAnimator.animateButtonClick(v);
+            v.postDelayed(() -> {
+                startActivity(new Intent(this, ManageVideosActivity.class));
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+            }, 150);
         });
 
         cardViewStudents.setOnClickListener(v -> {
-            startActivity(new Intent(this, ViewStudentsActivity.class));
+            RecyclerViewAnimator.animateButtonClick(v);
+            v.postDelayed(() -> {
+                startActivity(new Intent(this, ViewStudentsActivity.class));
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+            }, 150);
         });
 
         cardViewAttendance.setOnClickListener(v -> {
-            startActivity(new Intent(this, ViewAttendanceActivity.class));
+            RecyclerViewAnimator.animateButtonClick(v);
+            v.postDelayed(() -> {
+                startActivity(new Intent(this, ViewAttendanceActivity.class));
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+            }, 150);
         });
 
         cardLogout.setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(this, WelcomeActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+            RecyclerViewAnimator.animateButtonClick(v);
+            v.postDelayed(() -> {
+                FirebaseAuth.getInstance().signOut();
+                Intent intent = new Intent(this, WelcomeActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            }, 150);
         });
     }
 }

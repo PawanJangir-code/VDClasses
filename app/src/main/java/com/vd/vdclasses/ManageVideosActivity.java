@@ -8,10 +8,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -22,7 +24,8 @@ public class ManageVideosActivity extends AppCompatActivity {
 
     RecyclerView recyclerVideos;
     FloatingActionButton fabAddVideo;
-    EditText etSearchVideos;
+    TextInputEditText etSearchVideos;
+    ShimmerFrameLayout shimmerLayout;
     FirebaseFirestore db;
     List<VideoModel> videoList;
     List<String> documentIds;
@@ -38,7 +41,13 @@ public class ManageVideosActivity extends AppCompatActivity {
         recyclerVideos = findViewById(R.id.recyclerVideos);
         fabAddVideo = findViewById(R.id.fabAddVideo);
         etSearchVideos = findViewById(R.id.etSearchVideos);
+        shimmerLayout = findViewById(R.id.shimmerLayout);
         db = FirebaseFirestore.getInstance();
+
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> {
+            finish();
+        });
 
         videoList = new ArrayList<>();
         documentIds = new ArrayList<>();
@@ -49,7 +58,6 @@ public class ManageVideosActivity extends AppCompatActivity {
                 (documentId, position) -> {
                     db.collection("videos").document(documentId).delete()
                             .addOnSuccessListener(aVoid -> {
-                                // Remove from full lists as well
                                 int fullIndex = fullDocumentIds.indexOf(documentId);
                                 if (fullIndex != -1) {
                                     fullVideoList.remove(fullIndex);
@@ -71,6 +79,7 @@ public class ManageVideosActivity extends AppCompatActivity {
                     intent.putExtra("subject", video.getSubject());
                     intent.putExtra("videoUrl", video.getVideoUrl());
                     startActivity(intent);
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                 });
 
         adapter.setOnVideoClickListener(video -> {
@@ -78,6 +87,7 @@ public class ManageVideosActivity extends AppCompatActivity {
             intent.putExtra("videoUrl", video.getVideoUrl());
             intent.putExtra("title", video.getTitle());
             startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
 
         recyclerVideos.setLayoutManager(new LinearLayoutManager(this));
@@ -85,6 +95,7 @@ public class ManageVideosActivity extends AppCompatActivity {
 
         fabAddVideo.setOnClickListener(v -> {
             startActivity(new Intent(this, AddVideoActivity.class));
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
 
         etSearchVideos.addTextChangedListener(new TextWatcher() {
@@ -107,7 +118,26 @@ public class ManageVideosActivity extends AppCompatActivity {
         loadVideos();
     }
 
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
+
+    private void showShimmer() {
+        shimmerLayout.setVisibility(android.view.View.VISIBLE);
+        shimmerLayout.startShimmer();
+        recyclerVideos.setVisibility(android.view.View.GONE);
+    }
+
+    private void hideShimmer() {
+        shimmerLayout.stopShimmer();
+        shimmerLayout.setVisibility(android.view.View.GONE);
+        recyclerVideos.setVisibility(android.view.View.VISIBLE);
+    }
+
     private void loadVideos() {
+        showShimmer();
         db.collection("videos")
                 .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
@@ -119,9 +149,11 @@ public class ManageVideosActivity extends AppCompatActivity {
                         fullVideoList.add(video);
                         fullDocumentIds.add(doc.getId());
                     }
-                    filterVideos(etSearchVideos.getText().toString());
+                    filterVideos(etSearchVideos.getText() != null ? etSearchVideos.getText().toString() : "");
+                    hideShimmer();
                 })
                 .addOnFailureListener(e -> {
+                    hideShimmer();
                     Toast.makeText(this, "Failed to load videos: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }

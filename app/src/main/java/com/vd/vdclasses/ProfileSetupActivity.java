@@ -81,10 +81,17 @@ public class ProfileSetupActivity extends AppCompatActivity {
                     Intent intent = new Intent(this, StudentDashboardActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                     finish();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to save profile", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }

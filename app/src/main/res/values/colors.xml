@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Legacy colors (kept for compatibility) -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
@@ -7,4 +8,31 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- New palette -->
+    <color name="primary">#5B67CA</color>
+    <color name="primaryVariant">#4A55B5</color>
+    <color name="primaryLight">#E8EAFF</color>
+    <color name="secondary">#FF8C42</color>
+    <color name="secondaryVariant">#F07623</color>
+    <color name="surface">#F5F6FA</color>
+
+    <!-- Card tints -->
+    <color name="cardVideo">#E8EAFF</color>
+    <color name="cardOrange">#FFF3E0</color>
+    <color name="cardGreen">#E8F5E9</color>
+    <color name="cardRed">#FFEBEE</color>
+
+    <!-- Text -->
+    <color name="textPrimary">#1A1A2E</color>
+    <color name="textSecondary">#6C6C80</color>
+
+    <!-- Shimmer -->
+    <color name="shimmerBase">#E0E0E0</color>
+    <color name="shimmerHighlight">#F5F5F5</color>
+
+    <!-- Accent colors for icons -->
+    <color name="accentGreen">#4CAF50</color>
+    <color name="accentRed">#EF5350</color>
+    <color name="accentGrey">#9E9E9E</color>
 </resources>

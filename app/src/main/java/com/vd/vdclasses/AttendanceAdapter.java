@@ -18,6 +18,7 @@ public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.At
 
     private final List<AttendanceModel> attendanceList;
     private Map<String, String> nameMap;
+    private final RecyclerViewAnimator animator = new RecyclerViewAnimator();
 
     public AttendanceAdapter(List<AttendanceModel> attendanceList, Map<String, String> nameMap) {
         this.attendanceList = attendanceList;
@@ -46,6 +47,8 @@ public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.At
         SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
         String time = "Checked in at " + sdf.format(new Date(attendance.getTimestamp()));
         holder.tvAttendanceTime.setText(time);
+
+        animator.animateItem(holder.itemView, position);
     }
 
     @Override

@@ -38,7 +38,10 @@ public class StudentDashboardActivity extends AppCompatActivity {
         today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
         checkTodayAttendance();
-        btnMarkAttendance.setOnClickListener(v -> markAttendance());
+        btnMarkAttendance.setOnClickListener(v -> {
+            RecyclerViewAnimator.animateButtonClick(v);
+            v.postDelayed(() -> markAttendance(), 150);
+        });
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
 
@@ -107,6 +110,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
     private void loadFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
+                .setCustomAnimations(R.anim.fade_in, R.anim.fade_in)
                 .replace(R.id.fragmentContainer, fragment)
                 .commit();
     }

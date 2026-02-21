@@ -35,6 +35,7 @@ public class SignInActivity extends AppCompatActivity {
 
         tvGoToSignUp.setOnClickListener(v -> {
             startActivity(new Intent(this, SignUpActivity.class));
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             finish();
         });
     }
@@ -71,6 +72,7 @@ public class SignInActivity extends AppCompatActivity {
                         Intent intent = new Intent(this, AdminDashboardActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                     } else {
                         // Check student profile completeness
                         db.collection("students").document(email).get()
@@ -88,6 +90,7 @@ public class SignInActivity extends AppCompatActivity {
                                     }
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                     startActivity(intent);
+                                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(this, "Error checking profile", Toast.LENGTH_SHORT).show();
@@ -97,5 +100,11 @@ public class SignInActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error checking role. Try again.", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }

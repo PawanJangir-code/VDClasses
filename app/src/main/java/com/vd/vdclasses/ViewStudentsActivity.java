@@ -7,9 +7,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -20,7 +22,8 @@ import java.util.List;
 public class ViewStudentsActivity extends AppCompatActivity {
 
     RecyclerView recyclerStudents;
-    EditText etSearchStudents;
+    TextInputEditText etSearchStudents;
+    ShimmerFrameLayout shimmerLayout;
     FirebaseFirestore db;
     List<StudentModel> studentList;
     List<StudentModel> fullStudentList;
@@ -33,7 +36,11 @@ public class ViewStudentsActivity extends AppCompatActivity {
 
         recyclerStudents = findViewById(R.id.recyclerStudents);
         etSearchStudents = findViewById(R.id.etSearchStudents);
+        shimmerLayout = findViewById(R.id.shimmerLayout);
         db = FirebaseFirestore.getInstance();
+
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
 
         studentList = new ArrayList<>();
         fullStudentList = new ArrayList<>();
@@ -58,7 +65,26 @@ public class ViewStudentsActivity extends AppCompatActivity {
         loadStudents();
     }
 
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
+
+    private void showShimmer() {
+        shimmerLayout.setVisibility(android.view.View.VISIBLE);
+        shimmerLayout.startShimmer();
+        recyclerStudents.setVisibility(android.view.View.GONE);
+    }
+
+    private void hideShimmer() {
+        shimmerLayout.stopShimmer();
+        shimmerLayout.setVisibility(android.view.View.GONE);
+        recyclerStudents.setVisibility(android.view.View.VISIBLE);
+    }
+
     private void loadStudents() {
+        showShimmer();
         db.collection("students")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -76,9 +102,11 @@ public class ViewStudentsActivity extends AppCompatActivity {
                                 : (b.getEmail() != null ? b.getEmail().toLowerCase() : "");
                         return nameA.compareTo(nameB);
                     });
-                    filterStudents(etSearchStudents.getText().toString());
+                    filterStudents(etSearchStudents.getText() != null ? etSearchStudents.getText().toString() : "");
+                    hideShimmer();
                 })
                 .addOnFailureListener(e -> {
+                    hideShimmer();
                     Toast.makeText(this, "Failed to load students", Toast.LENGTH_SHORT).show();
                 });
     }

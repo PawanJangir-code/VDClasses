@@ -14,6 +14,7 @@ public class StudentVideoAdapter extends RecyclerView.Adapter<StudentVideoAdapte
 
     private final List<VideoModel> videoList;
     private OnVideoClickListener clickListener;
+    private final RecyclerViewAnimator animator = new RecyclerViewAnimator();
 
     public interface OnVideoClickListener {
         void onClick(VideoModel video);
@@ -37,6 +38,8 @@ public class StudentVideoAdapter extends RecyclerView.Adapter<StudentVideoAdapte
         VideoModel video = videoList.get(position);
         holder.tvVideoTitle.setText(video.getTitle());
         holder.tvVideoSubject.setText(video.getSubject());
+
+        animator.animateItem(holder.itemView, position);
 
         holder.itemView.setOnClickListener(v -> {
             if (clickListener != null) {

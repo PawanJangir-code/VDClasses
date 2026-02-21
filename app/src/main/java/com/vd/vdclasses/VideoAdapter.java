@@ -17,6 +17,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
     private final List<String> documentIds;
     private final OnVideoDeleteListener deleteListener;
     private final OnVideoEditListener editListener;
+    private final RecyclerViewAnimator animator = new RecyclerViewAnimator();
 
     public interface OnVideoDeleteListener {
         void onDelete(String documentId, int position);
@@ -56,6 +57,8 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
         VideoModel video = videoList.get(position);
         holder.tvVideoTitle.setText(video.getTitle());
         holder.tvVideoSubject.setText(video.getSubject());
+
+        animator.animateItem(holder.itemView, position);
 
         holder.btnDeleteVideo.setOnClickListener(v -> {
             int pos = holder.getAdapterPosition();

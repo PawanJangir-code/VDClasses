@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -29,6 +30,8 @@ public class ProfileFragment extends Fragment {
     private TextView tvEmail;
     private TextInputEditText etName, etPhone, etClass, etDob;
     private Button btnEditProfile, btnSaveProfile, btnLogout;
+    private ShimmerFrameLayout shimmerLayout;
+    private View contentLayout;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private boolean isEditing = false;
@@ -52,19 +55,43 @@ public class ProfileFragment extends Fragment {
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnSaveProfile = view.findViewById(R.id.btnSaveProfile);
         btnLogout = view.findViewById(R.id.btnLogout);
+        shimmerLayout = view.findViewById(R.id.shimmerLayout);
+        contentLayout = view.findViewById(R.id.contentLayout);
 
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
+        showShimmer();
         loadProfile();
 
         etDob.setOnClickListener(v -> {
             if (isEditing) showDatePicker();
         });
 
-        btnEditProfile.setOnClickListener(v -> toggleEdit(true));
-        btnSaveProfile.setOnClickListener(v -> saveProfile());
-        btnLogout.setOnClickListener(v -> logout());
+        btnEditProfile.setOnClickListener(v -> {
+            RecyclerViewAnimator.animateButtonClick(v);
+            v.postDelayed(() -> toggleEdit(true), 150);
+        });
+        btnSaveProfile.setOnClickListener(v -> {
+            RecyclerViewAnimator.animateButtonClick(v);
+            v.postDelayed(() -> saveProfile(), 150);
+        });
+        btnLogout.setOnClickListener(v -> {
+            RecyclerViewAnimator.animateButtonClick(v);
+            v.postDelayed(() -> logout(), 150);
+        });
+    }
+
+    private void showShimmer() {
+        shimmerLayout.setVisibility(View.VISIBLE);
+        shimmerLayout.startShimmer();
+        contentLayout.setVisibility(View.GONE);
+    }
+
+    private void hideShimmer() {
+        shimmerLayout.stopShimmer();
+        shimmerLayout.setVisibility(View.GONE);
+        contentLayout.setVisibility(View.VISIBLE);
     }
 
     private void loadProfile() {
@@ -86,7 +113,9 @@ public class ProfileFragment extends Fragment {
                         if (studentClass != null) etClass.setText(studentClass);
                         if (dob != null) etDob.setText(dob);
                     }
-                });
+                    hideShimmer();
+                })
+                .addOnFailureListener(e -> hideShimmer());
     }
 
     private void toggleEdit(boolean editing) {
