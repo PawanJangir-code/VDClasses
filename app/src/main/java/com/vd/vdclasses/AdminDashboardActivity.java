@@ -3,6 +3,7 @@ package com.vd.vdclasses;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -14,15 +15,11 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
     private TextView tvAdminName, tvAdminEmail;
-    private FirebaseFirestore db;
+    private SharedPreferences prefs;
     private String adminEmail;
 
     @Override
@@ -30,7 +27,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard);
 
-        db = FirebaseFirestore.getInstance();
+        prefs = getSharedPreferences("admin_profile", MODE_PRIVATE);
         tvAdminName = findViewById(R.id.tvAdminName);
         tvAdminEmail = findViewById(R.id.tvAdminEmail);
 
@@ -91,23 +88,12 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void loadAdminProfile() {
-        db.collection("admins").document(adminEmail)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        String name = doc.getString("name");
-                        if (name != null && !name.isEmpty()) {
-                            tvAdminName.setText(name);
-                        } else {
-                            tvAdminName.setText(adminEmail.substring(0, adminEmail.indexOf("@")));
-                        }
-                    } else {
-                        tvAdminName.setText(adminEmail.substring(0, adminEmail.indexOf("@")));
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    tvAdminName.setText(adminEmail.substring(0, adminEmail.indexOf("@")));
-                });
+        String savedName = prefs.getString("name", "");
+        if (!savedName.isEmpty()) {
+            tvAdminName.setText(savedName);
+        } else {
+            tvAdminName.setText(adminEmail.substring(0, adminEmail.indexOf("@")));
+        }
     }
 
     private void showEditProfileDialog() {
@@ -124,17 +110,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         tvDialogEmail.setText(adminEmail);
 
-        // Pre-fill existing values
-        db.collection("admins").document(adminEmail)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        String name = doc.getString("name");
-                        String phone = doc.getString("phone");
-                        if (name != null) etName.setText(name);
-                        if (phone != null) etPhone.setText(phone);
-                    }
-                });
+        // Pre-fill from SharedPreferences
+        String savedName = prefs.getString("name", "");
+        String savedPhone = prefs.getString("phone", "");
+        if (!savedName.isEmpty()) etName.setText(savedName);
+        if (!savedPhone.isEmpty()) etPhone.setText(savedPhone);
 
         btnSave.setOnClickListener(v -> {
             String name = etName.getText() != null ? etName.getText().toString().trim() : "";
@@ -145,20 +125,14 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 return;
             }
 
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("name", name);
-            updates.put("phone", phone);
+            prefs.edit()
+                    .putString("name", name)
+                    .putString("phone", phone)
+                    .apply();
 
-            db.collection("admins").document(adminEmail)
-                    .set(updates, com.google.firebase.firestore.SetOptions.merge())
-                    .addOnSuccessListener(aVoid -> {
-                        tvAdminName.setText(name);
-                        Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show();
-                    });
+            tvAdminName.setText(name);
+            Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
         });
 
         dialog.show();
