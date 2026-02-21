@@ -184,6 +184,7 @@ public class ProfileFragment extends Fragment {
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Logout", (dialog, which) -> {
                     auth.signOut();
+                    requireContext().getSharedPreferences("user_session", android.content.Context.MODE_PRIVATE).edit().clear().apply();
                     Intent intent = new Intent(requireContext(), WelcomeActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);

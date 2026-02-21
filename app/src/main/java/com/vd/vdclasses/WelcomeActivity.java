@@ -3,6 +3,7 @@ package com.vd.vdclasses;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -37,6 +38,29 @@ public class WelcomeActivity extends AppCompatActivity {
 
         FirebaseUser user = auth.getCurrentUser();
         if (user != null && user.getEmail() != null) {
+            // Try cached session first for instant redirect
+            SharedPreferences session = getSharedPreferences("user_session", MODE_PRIVATE);
+            String cachedEmail = session.getString("email", "");
+            String cachedRole = session.getString("role", "");
+
+            if (user.getEmail().equals(cachedEmail) && !cachedRole.isEmpty()) {
+                if ("admin".equals(cachedRole)) {
+                    startActivity(new Intent(this, AdminDashboardActivity.class));
+                    finish();
+                    return;
+                } else if ("student".equals(cachedRole)) {
+                    boolean profileComplete = session.getBoolean("profileComplete", false);
+                    if (profileComplete) {
+                        startActivity(new Intent(this, StudentDashboardActivity.class));
+                    } else {
+                        startActivity(new Intent(this, ProfileSetupActivity.class));
+                    }
+                    finish();
+                    return;
+                }
+            }
+
+            // Cache miss or mismatch — fall through to Firestore check
             autoRedirect(user.getEmail());
             return;
         }
@@ -127,6 +151,7 @@ public class WelcomeActivity extends AppCompatActivity {
                         StudentModel student = new StudentModel(email);
                         db.collection("students").document(email).set(student)
                                 .addOnSuccessListener(aVoid -> {
+                                    saveSession(email, "student", false);
                                     Intent intent = new Intent(this, ProfileSetupActivity.class);
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                     startActivity(intent);
@@ -148,6 +173,7 @@ public class WelcomeActivity extends AppCompatActivity {
         db.collection("admins").document(email).get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
+                        saveSession(email, "admin", true);
                         Intent intent = new Intent(this, AdminDashboardActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
@@ -158,12 +184,15 @@ public class WelcomeActivity extends AppCompatActivity {
                                     Intent intent;
                                     if (studentDoc.exists()) {
                                         Boolean profileComplete = studentDoc.getBoolean("profileComplete");
-                                        if (profileComplete != null && profileComplete) {
+                                        boolean complete = profileComplete != null && profileComplete;
+                                        saveSession(email, "student", complete);
+                                        if (complete) {
                                             intent = new Intent(this, StudentDashboardActivity.class);
                                         } else {
                                             intent = new Intent(this, ProfileSetupActivity.class);
                                         }
                                     } else {
+                                        saveSession(email, "student", false);
                                         intent = new Intent(this, ProfileSetupActivity.class);
                                     }
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -208,6 +237,7 @@ public class WelcomeActivity extends AppCompatActivity {
         db.collection("admins").document(email).get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
+                        saveSession(email, "admin", true);
                         startActivity(new Intent(this, AdminDashboardActivity.class));
                         finish();
                     } else {
@@ -215,12 +245,15 @@ public class WelcomeActivity extends AppCompatActivity {
                                 .addOnSuccessListener(studentDoc -> {
                                     if (studentDoc.exists()) {
                                         Boolean profileComplete = studentDoc.getBoolean("profileComplete");
-                                        if (profileComplete != null && profileComplete) {
+                                        boolean complete = profileComplete != null && profileComplete;
+                                        saveSession(email, "student", complete);
+                                        if (complete) {
                                             startActivity(new Intent(this, StudentDashboardActivity.class));
                                         } else {
                                             startActivity(new Intent(this, ProfileSetupActivity.class));
                                         }
                                     } else {
+                                        saveSession(email, "student", false);
                                         startActivity(new Intent(this, ProfileSetupActivity.class));
                                     }
                                     finish();
@@ -239,5 +272,14 @@ public class WelcomeActivity extends AppCompatActivity {
                     setupListeners();
                     playEntranceAnimation();
                 });
+    }
+
+    private void saveSession(String email, String role, boolean profileComplete) {
+        getSharedPreferences("user_session", MODE_PRIVATE)
+                .edit()
+                .putString("email", email)
+                .putString("role", role)
+                .putBoolean("profileComplete", profileComplete)
+                .apply();
     }
 }
