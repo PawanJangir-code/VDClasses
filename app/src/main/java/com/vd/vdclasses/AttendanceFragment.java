@@ -112,15 +112,16 @@ public class AttendanceFragment extends Fragment {
 
         db.collection("attendance")
                 .whereEqualTo("email", userEmail)
-                .whereGreaterThanOrEqualTo("date", startDate)
-                .whereLessThanOrEqualTo("date", endDate)
                 .get()
                 .addOnSuccessListener(querySnapshots -> {
                     if (!isAdded()) return;
                     Map<String, Long> presentDates = new HashMap<>();
                     for (QueryDocumentSnapshot doc : querySnapshots) {
                         AttendanceModel record = doc.toObject(AttendanceModel.class);
-                        presentDates.put(record.getDate(), record.getTimestamp());
+                        String d = record.getDate();
+                        if (d != null && d.compareTo(startDate) >= 0 && d.compareTo(endDate) <= 0) {
+                            presentDates.put(d, record.getTimestamp());
+                        }
                     }
                     buildCalendar(presentDates);
                     hideShimmer();
