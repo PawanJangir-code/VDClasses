@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "75449681804",
+    "project_id": "vdclasses-f532c",
+    "storage_bucket": "vdclasses-f532c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75449681804:android:49df928448cda7d336b8a9",
+        "android_client_info": {
+          "package_name": "com.vd.vdclasses"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKNx02d45kVrMb0EzQZgcefRLRTBPlcmw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
