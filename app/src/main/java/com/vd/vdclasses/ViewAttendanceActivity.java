@@ -16,7 +16,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -25,11 +25,12 @@ import java.util.Map;
 public class ViewAttendanceActivity extends AppCompatActivity {
 
     RecyclerView recyclerAttendance;
-    TextView tvAttendanceDate, tvNoAttendance;
+    TextView tvAttendanceDate, tvNoAttendance, tvAttendanceCount;
     ShimmerFrameLayout shimmerLayout;
     FirebaseFirestore db;
     List<AttendanceModel> attendanceList;
     AttendanceAdapter adapter;
+    Calendar currentDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,14 +40,15 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         recyclerAttendance = findViewById(R.id.recyclerAttendance);
         tvAttendanceDate = findViewById(R.id.tvAttendanceDate);
         tvNoAttendance = findViewById(R.id.tvNoAttendance);
+        tvAttendanceCount = findViewById(R.id.tvAttendanceCount);
         shimmerLayout = findViewById(R.id.shimmerLayout);
         db = FirebaseFirestore.getInstance();
 
         ImageButton btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
 
-        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-        tvAttendanceDate.setText("Date: " + today);
+        currentDate = Calendar.getInstance();
+        updateDateDisplay();
 
         attendanceList = new ArrayList<>();
         adapter = new AttendanceAdapter(attendanceList, new HashMap<>());
@@ -54,7 +56,21 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         recyclerAttendance.setLayoutManager(new LinearLayoutManager(this));
         recyclerAttendance.setAdapter(adapter);
 
-        loadStudentNamesThenAttendance(today);
+        // Day navigation
+        ImageButton btnPrevDay = findViewById(R.id.btnPrevDay);
+        ImageButton btnNextDay = findViewById(R.id.btnNextDay);
+        btnPrevDay.setOnClickListener(v -> {
+            currentDate.add(Calendar.DAY_OF_MONTH, -1);
+            updateDateDisplay();
+            loadStudentNamesThenAttendance(getDateString());
+        });
+        btnNextDay.setOnClickListener(v -> {
+            currentDate.add(Calendar.DAY_OF_MONTH, 1);
+            updateDateDisplay();
+            loadStudentNamesThenAttendance(getDateString());
+        });
+
+        loadStudentNamesThenAttendance(getDateString());
     }
 
     @Override
@@ -63,10 +79,20 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 
+    private String getDateString() {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(currentDate.getTime());
+    }
+
+    private void updateDateDisplay() {
+        tvAttendanceDate.setText("Date: " + getDateString());
+    }
+
     private void showShimmer() {
         shimmerLayout.setVisibility(View.VISIBLE);
         shimmerLayout.startShimmer();
         recyclerAttendance.setVisibility(View.GONE);
+        tvNoAttendance.setVisibility(View.GONE);
+        tvAttendanceCount.setVisibility(View.GONE);
     }
 
     private void hideShimmer() {
@@ -110,10 +136,15 @@ public class ViewAttendanceActivity extends AppCompatActivity {
 
                     if (attendanceList.isEmpty()) {
                         tvNoAttendance.setVisibility(View.VISIBLE);
+                        tvNoAttendance.setText("No check-ins for this date.");
                         recyclerAttendance.setVisibility(View.GONE);
+                        tvAttendanceCount.setVisibility(View.GONE);
                     } else {
                         tvNoAttendance.setVisibility(View.GONE);
                         recyclerAttendance.setVisibility(View.VISIBLE);
+                        tvAttendanceCount.setVisibility(View.VISIBLE);
+                        int count = attendanceList.size();
+                        tvAttendanceCount.setText(count + " student" + (count != 1 ? "s" : "") + " checked in");
                     }
                 })
                 .addOnFailureListener(e -> {

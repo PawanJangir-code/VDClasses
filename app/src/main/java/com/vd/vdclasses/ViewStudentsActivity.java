@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -44,7 +45,12 @@ public class ViewStudentsActivity extends AppCompatActivity {
 
         studentList = new ArrayList<>();
         fullStudentList = new ArrayList<>();
-        adapter = new StudentAdapter(studentList);
+        adapter = new StudentAdapter(studentList, student -> {
+            Intent intent = new Intent(ViewStudentsActivity.this, StudentDetailActivity.class);
+            intent.putExtra("studentEmail", student.getEmail());
+            startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        });
 
         recyclerStudents.setLayoutManager(new LinearLayoutManager(this));
         recyclerStudents.setAdapter(adapter);

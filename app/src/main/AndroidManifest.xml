@@ -16,6 +16,9 @@
             android:name=".VideoPlayerActivity"
             android:exported="false" />
         <activity
+            android:name=".StudentDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".ViewAttendanceActivity"
             android:exported="false" />
         <activity

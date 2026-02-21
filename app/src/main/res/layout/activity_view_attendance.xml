@@ -25,8 +25,9 @@
             android:layout_marginEnd="12dp" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
@@ -37,17 +38,61 @@
                 android:textStyle="bold"
                 android:textColor="@color/textPrimary" />
 
-            <TextView
-                android:id="@+id/tvAttendanceDate"
+            <!-- Date row with prev/next arrows -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="@color/textSecondary"
-                android:layout_marginTop="2dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="2dp">
+
+                <ImageButton
+                    android:id="@+id/btnPrevDay"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_arrow_back"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:scaleX="0.7"
+                    android:scaleY="0.7"
+                    android:contentDescription="Previous day" />
+
+                <TextView
+                    android:id="@+id/tvAttendanceDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@color/textSecondary"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp" />
+
+                <ImageButton
+                    android:id="@+id/btnNextDay"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_arrow_back"
+                    android:rotation="180"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:scaleX="0.7"
+                    android:scaleY="0.7"
+                    android:contentDescription="Next day" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
     </LinearLayout>
+
+    <!-- Attendance count -->
+    <TextView
+        android:id="@+id/tvAttendanceCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="8dp"
+        android:textSize="13sp"
+        android:textColor="@color/primary"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
     <!-- Shimmer skeleton -->
     <com.facebook.shimmer.ShimmerFrameLayout
@@ -75,7 +120,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="No check-ins for today yet."
+        android:text="No check-ins for this date."
         android:textSize="16sp"
         android:textColor="@color/textSecondary"
         android:visibility="gone" />

@@ -55,6 +55,8 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
             if (itemId == R.id.nav_videos) {
                 fragment = new VideoListFragment();
+            } else if (itemId == R.id.nav_attendance) {
+                fragment = new AttendanceFragment();
             } else if (itemId == R.id.nav_profile) {
                 fragment = new ProfileFragment();
             } else {

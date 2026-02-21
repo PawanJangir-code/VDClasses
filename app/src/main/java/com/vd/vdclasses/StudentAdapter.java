@@ -15,11 +15,22 @@ import java.util.Locale;
 
 public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentViewHolder> {
 
+    public interface OnStudentClickListener {
+        void onStudentClick(StudentModel student);
+    }
+
     private final List<StudentModel> studentList;
     private final RecyclerViewAnimator animator = new RecyclerViewAnimator();
+    private final OnStudentClickListener listener;
 
     public StudentAdapter(List<StudentModel> studentList) {
         this.studentList = studentList;
+        this.listener = null;
+    }
+
+    public StudentAdapter(List<StudentModel> studentList, OnStudentClickListener listener) {
+        this.studentList = studentList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -45,6 +56,13 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
         String joinDate = "Joined: " + sdf.format(new Date(student.getCreatedAt()));
         holder.tvStudentJoinDate.setText(joinDate);
+
+        if (listener != null) {
+            holder.itemView.setOnClickListener(v -> {
+                RecyclerViewAnimator.animateButtonClick(v);
+                v.postDelayed(() -> listener.onStudentClick(student), 150);
+            });
+        }
 
         animator.animateItem(holder.itemView, position);
     }
