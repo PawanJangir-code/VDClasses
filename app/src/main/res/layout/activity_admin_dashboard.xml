@@ -9,15 +9,78 @@
     android:background="@color/surface"
     tools:context=".AdminDashboardActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Account Info Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Admin Dashboard"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@color/textPrimary"
-        android:layout_marginBottom="24dp"
-        android:layout_gravity="center_horizontal" />
+        android:layout_marginBottom="20dp"
+        app:cardElevation="2dp"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="@color/white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+
+            <!-- Profile icon -->
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_circle_icon">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_profile_person"
+                    android:contentDescription="Profile" />
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:id="@+id/tvAdminName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary" />
+
+                <TextView
+                    android:id="@+id/tvAdminEmail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="@color/textSecondary"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <!-- Role badge -->
+            <TextView
+                android:id="@+id/tvAdminRole"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Admin"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:background="@drawable/bg_role_badge" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Manage Videos Card -->
     <com.google.android.material.card.MaterialCardView
