@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.chip.Chip;
@@ -29,6 +30,7 @@ public class VideoListFragment extends Fragment {
     private ChipGroup chipGroupSubjects;
     private ShimmerFrameLayout shimmerLayout;
     private View contentLayout;
+    private SwipeRefreshLayout swipeRefresh;
     private FirebaseFirestore db;
 
     private final List<VideoModel> allVideos = new ArrayList<>();
@@ -51,7 +53,11 @@ public class VideoListFragment extends Fragment {
         chipGroupSubjects = view.findViewById(R.id.chipGroupSubjects);
         shimmerLayout = view.findViewById(R.id.shimmerLayout);
         contentLayout = view.findViewById(R.id.contentLayout);
+        swipeRefresh = view.findViewById(R.id.swipeRefresh);
         db = FirebaseFirestore.getInstance();
+
+        swipeRefresh.setColorSchemeResources(R.color.primary);
+        swipeRefresh.setOnRefreshListener(this::loadVideos);
 
         adapter = new StudentVideoAdapter(filteredVideos, video -> {
             Intent intent = new Intent(requireContext(), VideoPlayerActivity.class);
@@ -99,6 +105,7 @@ public class VideoListFragment extends Fragment {
                     buildSubjectChips(subjects);
                     applyFilter();
                     hideShimmer();
+                    swipeRefresh.setRefreshing(false);
                 });
     }
 

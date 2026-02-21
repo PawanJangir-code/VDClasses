@@ -26,16 +26,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class AttendanceFragment extends Fragment {
 
-    private TextView tvMonth, tvAttendanceSummary, tvAttendancePercent;
+    private TextView tvMonth, tvAttendanceSummary, tvAttendancePercent, tvStreakCount;
     private RecyclerView recyclerCalendar;
     private ShimmerFrameLayout shimmerLayout;
-    private MaterialCardView attendanceCard;
+    private MaterialCardView attendanceCard, streakCard;
     private FirebaseFirestore db;
 
     private final Calendar currentMonth = Calendar.getInstance();
@@ -56,9 +58,11 @@ public class AttendanceFragment extends Fragment {
 
         shimmerLayout = view.findViewById(R.id.shimmerLayout);
         attendanceCard = view.findViewById(R.id.attendanceCard);
+        streakCard = view.findViewById(R.id.streakCard);
         tvMonth = view.findViewById(R.id.tvMonth);
         tvAttendanceSummary = view.findViewById(R.id.tvAttendanceSummary);
         tvAttendancePercent = view.findViewById(R.id.tvAttendancePercent);
+        tvStreakCount = view.findViewById(R.id.tvStreakCount);
         recyclerCalendar = view.findViewById(R.id.recyclerCalendar);
 
         calendarDays = new ArrayList<>();
@@ -78,6 +82,7 @@ public class AttendanceFragment extends Fragment {
         });
 
         loadAttendance();
+        loadStreak();
 
         return view;
     }
@@ -131,6 +136,60 @@ public class AttendanceFragment extends Fragment {
                     buildCalendar(new HashMap<>());
                     hideShimmer();
                     Toast.makeText(requireContext(), "Failed to load attendance", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void loadStreak() {
+        if (userEmail == null) return;
+
+        db.collection("attendance")
+                .whereEqualTo("email", userEmail)
+                .get()
+                .addOnSuccessListener(querySnapshots -> {
+                    if (!isAdded()) return;
+
+                    Set<String> allDates = new HashSet<>();
+                    for (QueryDocumentSnapshot doc : querySnapshots) {
+                        AttendanceModel record = doc.toObject(AttendanceModel.class);
+                        if (record.getDate() != null) {
+                            allDates.add(record.getDate());
+                        }
+                    }
+
+                    // Calculate streak going backwards from today
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    Calendar cal = Calendar.getInstance();
+                    int streak = 0;
+
+                    while (true) {
+                        String dateStr = sdf.format(cal.getTime());
+                        if (allDates.contains(dateStr)) {
+                            streak++;
+                            cal.add(Calendar.DAY_OF_MONTH, -1);
+                        } else {
+                            // If today hasn't been marked yet, try starting from yesterday
+                            if (streak == 0) {
+                                cal.add(Calendar.DAY_OF_MONTH, -1);
+                                String yesterday = sdf.format(cal.getTime());
+                                if (allDates.contains(yesterday)) {
+                                    streak++;
+                                    cal.add(Calendar.DAY_OF_MONTH, -1);
+                                    while (allDates.contains(sdf.format(cal.getTime()))) {
+                                        streak++;
+                                        cal.add(Calendar.DAY_OF_MONTH, -1);
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+
+                    if (streak > 0) {
+                        streakCard.setVisibility(View.VISIBLE);
+                        tvStreakCount.setText(streak + "-day streak!");
+                    } else {
+                        streakCard.setVisibility(View.GONE);
+                    }
                 });
     }
 

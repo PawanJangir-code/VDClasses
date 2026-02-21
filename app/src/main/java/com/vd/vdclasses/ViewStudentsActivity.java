@@ -3,6 +3,7 @@ package com.vd.vdclasses;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -25,6 +26,7 @@ public class ViewStudentsActivity extends AppCompatActivity {
     RecyclerView recyclerStudents;
     TextInputEditText etSearchStudents;
     ShimmerFrameLayout shimmerLayout;
+    SwipeRefreshLayout swipeRefresh;
     FirebaseFirestore db;
     List<StudentModel> studentList;
     List<StudentModel> fullStudentList;
@@ -38,6 +40,7 @@ public class ViewStudentsActivity extends AppCompatActivity {
         recyclerStudents = findViewById(R.id.recyclerStudents);
         etSearchStudents = findViewById(R.id.etSearchStudents);
         shimmerLayout = findViewById(R.id.shimmerLayout);
+        swipeRefresh = findViewById(R.id.swipeRefresh);
         db = FirebaseFirestore.getInstance();
 
         ImageButton btnBack = findViewById(R.id.btnBack);
@@ -54,6 +57,9 @@ public class ViewStudentsActivity extends AppCompatActivity {
 
         recyclerStudents.setLayoutManager(new LinearLayoutManager(this));
         recyclerStudents.setAdapter(adapter);
+
+        swipeRefresh.setColorSchemeResources(R.color.primary);
+        swipeRefresh.setOnRefreshListener(this::loadStudents);
 
         etSearchStudents.addTextChangedListener(new TextWatcher() {
             @Override
@@ -80,17 +86,19 @@ public class ViewStudentsActivity extends AppCompatActivity {
     private void showShimmer() {
         shimmerLayout.setVisibility(android.view.View.VISIBLE);
         shimmerLayout.startShimmer();
-        recyclerStudents.setVisibility(android.view.View.GONE);
+        swipeRefresh.setVisibility(android.view.View.GONE);
     }
 
     private void hideShimmer() {
         shimmerLayout.stopShimmer();
         shimmerLayout.setVisibility(android.view.View.GONE);
-        recyclerStudents.setVisibility(android.view.View.VISIBLE);
+        swipeRefresh.setVisibility(android.view.View.VISIBLE);
     }
 
     private void loadStudents() {
-        showShimmer();
+        if (!swipeRefresh.isRefreshing()) {
+            showShimmer();
+        }
         db.collection("students")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -110,9 +118,11 @@ public class ViewStudentsActivity extends AppCompatActivity {
                     });
                     filterStudents(etSearchStudents.getText() != null ? etSearchStudents.getText().toString() : "");
                     hideShimmer();
+                    swipeRefresh.setRefreshing(false);
                 })
                 .addOnFailureListener(e -> {
                     hideShimmer();
+                    swipeRefresh.setRefreshing(false);
                     Toast.makeText(this, "Failed to load students", Toast.LENGTH_SHORT).show();
                 });
     }

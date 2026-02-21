@@ -6,32 +6,78 @@
     android:orientation="vertical"
     android:background="@color/surface">
 
+    <!-- Attendance Card -->
     <LinearLayout
         android:id="@+id/attendanceBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
+        android:background="@drawable/bg_attendance_card"
         android:padding="16dp"
-        android:background="@drawable/bg_attendance_bar">
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="4dp">
 
-        <TextView
-            android:id="@+id/tvAttendanceStatus"
+        <!-- Left: Icon + Text -->
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="12dp">
+
+            <View
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_mark_done" />
+
+            <ImageView
+                android:id="@+id/ivAttendanceIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check_circle"
+                app:tint="@color/white"
+                android:contentDescription="Attendance" />
+
+        </FrameLayout>
+
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/white"
-            android:textSize="14sp" />
+            android:orientation="vertical">
 
-        <Button
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Today's Attendance"
+                android:textSize="13sp"
+                android:textColor="#B0B8FF" />
+
+            <TextView
+                android:id="@+id/tvAttendanceStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+
+        <!-- Mark button -->
+        <TextView
             android:id="@+id/btnMarkAttendance"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mark Attendance"
-            android:textColor="@color/white"
-            app:strokeColor="@color/white"
-            app:cornerRadius="24dp" />
+            android:text="Mark Now"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary"
+            android:background="@drawable/bg_mark_button"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="10dp" />
 
     </LinearLayout>
 

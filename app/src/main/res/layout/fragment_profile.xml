@@ -167,6 +167,15 @@
                 app:strokeColor="@color/accentRed"
                 android:layout_marginBottom="16dp" />
 
+            <TextView
+                android:id="@+id/tvVersionInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:textSize="12sp"
+                android:textColor="@color/accentGrey"
+                android:layout_marginBottom="16dp" />
+
         </LinearLayout>
 
     </ScrollView>

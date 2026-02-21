@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import android.os.Bundle;
-import android.widget.Button;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,11 +19,12 @@ import java.util.Locale;
 
 public class StudentDashboardActivity extends AppCompatActivity {
 
-    private Button btnMarkAttendance;
+    private TextView btnMarkAttendance;
     private TextView tvAttendanceStatus;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private String today;
+    private BottomNavigationView bottomNav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +44,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
             v.postDelayed(() -> markAttendance(), 150);
         });
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        bottomNav = findViewById(R.id.bottomNav);
 
         if (savedInstanceState == null) {
             loadFragment(new VideoListFragment());
@@ -78,11 +79,9 @@ public class StudentDashboardActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
-                        btnMarkAttendance.setEnabled(false);
-                        btnMarkAttendance.setText("Done");
-                        tvAttendanceStatus.setText("Attendance marked for today");
+                        setMarkedState();
                     } else {
-                        tvAttendanceStatus.setText("Attendance pending");
+                        tvAttendanceStatus.setText("Tap to mark your attendance");
                     }
                 });
     }
@@ -99,14 +98,22 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
         db.collection("attendance").add(record)
                 .addOnSuccessListener(documentReference -> {
-                    btnMarkAttendance.setEnabled(false);
-                    btnMarkAttendance.setText("Done");
-                    tvAttendanceStatus.setText("Attendance marked for today");
+                    setMarkedState();
                     Toast.makeText(this, "Attendance marked!", Toast.LENGTH_SHORT).show();
+                    // Update badge
+                    bottomNav.getOrCreateBadge(R.id.nav_attendance).setVisible(false);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to mark attendance", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void setMarkedState() {
+        btnMarkAttendance.setEnabled(false);
+        btnMarkAttendance.setText("Done");
+        btnMarkAttendance.setBackgroundResource(R.drawable.bg_mark_done);
+        btnMarkAttendance.setTextColor(getResources().getColor(R.color.white, null));
+        tvAttendanceStatus.setText("Attendance marked for today");
     }
 
     private void loadFragment(Fragment fragment) {

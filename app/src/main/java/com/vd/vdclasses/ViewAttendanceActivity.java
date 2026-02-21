@@ -3,10 +3,12 @@ package com.vd.vdclasses;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +29,8 @@ public class ViewAttendanceActivity extends AppCompatActivity {
     RecyclerView recyclerAttendance;
     TextView tvAttendanceDate, tvNoAttendance, tvAttendanceCount;
     ShimmerFrameLayout shimmerLayout;
+    SwipeRefreshLayout swipeRefresh;
+    LinearLayout emptyState;
     FirebaseFirestore db;
     List<AttendanceModel> attendanceList;
     AttendanceAdapter adapter;
@@ -42,6 +46,8 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         tvNoAttendance = findViewById(R.id.tvNoAttendance);
         tvAttendanceCount = findViewById(R.id.tvAttendanceCount);
         shimmerLayout = findViewById(R.id.shimmerLayout);
+        swipeRefresh = findViewById(R.id.swipeRefresh);
+        emptyState = findViewById(R.id.emptyState);
         db = FirebaseFirestore.getInstance();
 
         ImageButton btnBack = findViewById(R.id.btnBack);
@@ -55,6 +61,9 @@ public class ViewAttendanceActivity extends AppCompatActivity {
 
         recyclerAttendance.setLayoutManager(new LinearLayoutManager(this));
         recyclerAttendance.setAdapter(adapter);
+
+        swipeRefresh.setColorSchemeResources(R.color.primary);
+        swipeRefresh.setOnRefreshListener(() -> loadStudentNamesThenAttendance(getDateString()));
 
         // Day navigation
         ImageButton btnPrevDay = findViewById(R.id.btnPrevDay);
@@ -90,8 +99,8 @@ public class ViewAttendanceActivity extends AppCompatActivity {
     private void showShimmer() {
         shimmerLayout.setVisibility(View.VISIBLE);
         shimmerLayout.startShimmer();
-        recyclerAttendance.setVisibility(View.GONE);
-        tvNoAttendance.setVisibility(View.GONE);
+        swipeRefresh.setVisibility(View.GONE);
+        emptyState.setVisibility(View.GONE);
         tvAttendanceCount.setVisibility(View.GONE);
     }
 
@@ -101,7 +110,9 @@ public class ViewAttendanceActivity extends AppCompatActivity {
     }
 
     private void loadStudentNamesThenAttendance(String date) {
-        showShimmer();
+        if (!swipeRefresh.isRefreshing()) {
+            showShimmer();
+        }
         db.collection("students")
                 .get()
                 .addOnSuccessListener(studentSnapshots -> {
@@ -133,15 +144,15 @@ public class ViewAttendanceActivity extends AppCompatActivity {
                     }
                     adapter.notifyDataSetChanged();
                     hideShimmer();
+                    swipeRefresh.setRefreshing(false);
 
                     if (attendanceList.isEmpty()) {
-                        tvNoAttendance.setVisibility(View.VISIBLE);
-                        tvNoAttendance.setText("No check-ins for this date.");
-                        recyclerAttendance.setVisibility(View.GONE);
+                        emptyState.setVisibility(View.VISIBLE);
+                        swipeRefresh.setVisibility(View.GONE);
                         tvAttendanceCount.setVisibility(View.GONE);
                     } else {
-                        tvNoAttendance.setVisibility(View.GONE);
-                        recyclerAttendance.setVisibility(View.VISIBLE);
+                        emptyState.setVisibility(View.GONE);
+                        swipeRefresh.setVisibility(View.VISIBLE);
                         tvAttendanceCount.setVisibility(View.VISIBLE);
                         int count = attendanceList.size();
                         tvAttendanceCount.setText(count + " student" + (count != 1 ? "s" : "") + " checked in");
@@ -149,6 +160,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     hideShimmer();
+                    swipeRefresh.setRefreshing(false);
                     Toast.makeText(this, "Failed to load attendance: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }

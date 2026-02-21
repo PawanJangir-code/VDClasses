@@ -12,24 +12,35 @@ import android.widget.Toast;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
     private TextView tvAdminName, tvAdminEmail;
+    private TextView tvTotalStudents, tvTodayCheckins;
     private SharedPreferences prefs;
     private String adminEmail;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard);
 
+        db = FirebaseFirestore.getInstance();
         prefs = getSharedPreferences("admin_profile", MODE_PRIVATE);
         tvAdminName = findViewById(R.id.tvAdminName);
         tvAdminEmail = findViewById(R.id.tvAdminEmail);
+        tvTotalStudents = findViewById(R.id.tvTotalStudents);
+        tvTodayCheckins = findViewById(R.id.tvTodayCheckins);
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
@@ -38,6 +49,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
             tvAdminEmail.setText(adminEmail);
             loadAdminProfile();
         }
+
+        loadStats();
 
         // Tap account card to edit profile
         MaterialCardView cardAccountInfo = findViewById(R.id.cardAccountInfo);
@@ -77,14 +90,14 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         cardLogout.setOnClickListener(v -> {
             RecyclerViewAnimator.animateButtonClick(v);
-            v.postDelayed(() -> {
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(this, WelcomeActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-            }, 150);
+            v.postDelayed(this::showLogoutConfirmation, 150);
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadStats();
     }
 
     private void loadAdminProfile() {
@@ -94,6 +107,32 @@ public class AdminDashboardActivity extends AppCompatActivity {
         } else {
             tvAdminName.setText(adminEmail.substring(0, adminEmail.indexOf("@")));
         }
+    }
+
+    private void loadStats() {
+        // Total students
+        db.collection("students").get()
+                .addOnSuccessListener(snap -> tvTotalStudents.setText(String.valueOf(snap.size())));
+
+        // Today's check-ins
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        db.collection("attendance").whereEqualTo("date", today).get()
+                .addOnSuccessListener(snap -> tvTodayCheckins.setText(String.valueOf(snap.size())));
+    }
+
+    private void showLogoutConfirmation() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Logout", (dialog, which) -> {
+                    FirebaseAuth.getInstance().signOut();
+                    Intent intent = new Intent(this, WelcomeActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void showEditProfileDialog() {
@@ -110,7 +149,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         tvDialogEmail.setText(adminEmail);
 
-        // Pre-fill from SharedPreferences
         String savedName = prefs.getString("name", "");
         String savedPhone = prefs.getString("phone", "");
         if (!savedName.isEmpty()) etName.setText(savedName);

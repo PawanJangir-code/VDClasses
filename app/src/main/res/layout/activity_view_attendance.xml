@@ -106,23 +106,48 @@
 
     </com.facebook.shimmer.ShimmerFrameLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerAttendance"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp"
-        android:clipToPadding="false"
-        android:visibility="gone" />
+        android:visibility="gone">
 
-    <TextView
-        android:id="@+id/tvNoAttendance"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="No check-ins for this date."
-        android:textSize="16sp"
-        android:textColor="@color/textSecondary"
-        android:visibility="gone" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerAttendance"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- Empty state -->
+    <LinearLayout
+        android:id="@+id/emptyState"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_attendance_calendar"
+            android:layout_marginBottom="12dp"
+            app:tint="@color/accentGrey"
+            android:contentDescription="No data" />
+
+        <TextView
+            android:id="@+id/tvNoAttendance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No check-ins for this date."
+            android:textSize="16sp"
+            android:textColor="@color/textSecondary" />
+
+    </LinearLayout>
 
 </LinearLayout>
