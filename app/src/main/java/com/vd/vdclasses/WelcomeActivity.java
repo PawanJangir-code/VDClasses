@@ -8,7 +8,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -17,6 +20,13 @@ public class WelcomeActivity extends AppCompatActivity {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
+
+    private TextInputEditText etEmail, etPassword, etConfirmPassword;
+    private TextInputLayout tilConfirmPassword;
+    private Button btnSignIn, btnSignUp;
+    private TextView tvToggleMode;
+
+    private boolean isSignUpMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,57 +42,166 @@ public class WelcomeActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_welcome);
-        setupButtons();
+        initViews();
+        setupListeners();
         playEntranceAnimation();
+    }
+
+    private void initViews() {
+        etEmail = findViewById(R.id.etEmail);
+        etPassword = findViewById(R.id.etPassword);
+        etConfirmPassword = findViewById(R.id.etConfirmPassword);
+        tilConfirmPassword = findViewById(R.id.tilConfirmPassword);
+        btnSignIn = findViewById(R.id.btnSignIn);
+        btnSignUp = findViewById(R.id.btnSignUp);
+        tvToggleMode = findViewById(R.id.tvToggleMode);
+    }
+
+    private void setupListeners() {
+        btnSignIn.setOnClickListener(v -> signIn());
+        btnSignUp.setOnClickListener(v -> signUp());
+        tvToggleMode.setOnClickListener(v -> toggleMode());
+    }
+
+    private void toggleMode() {
+        isSignUpMode = !isSignUpMode;
+        if (isSignUpMode) {
+            tilConfirmPassword.setVisibility(View.VISIBLE);
+            btnSignIn.setVisibility(View.GONE);
+            btnSignUp.setVisibility(View.VISIBLE);
+            tvToggleMode.setText("Already have an account? Sign In");
+        } else {
+            tilConfirmPassword.setVisibility(View.GONE);
+            btnSignIn.setVisibility(View.VISIBLE);
+            btnSignUp.setVisibility(View.GONE);
+            tvToggleMode.setText("Don't have an account? Sign Up");
+        }
+    }
+
+    private void signIn() {
+        String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
+        String password = etPassword.getText() != null ? etPassword.getText().toString().trim() : "";
+
+        if (email.isEmpty()) {
+            Toast.makeText(this, "Enter email", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (password.isEmpty()) {
+            Toast.makeText(this, "Enter password", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        checkRoleAndRedirect(email);
+                    } else {
+                        Toast.makeText(this, "Login failed: " +
+                                        (task.getException() != null ? task.getException().getMessage() : "Unknown error"),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void signUp() {
+        String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
+        String password = etPassword.getText() != null ? etPassword.getText().toString().trim() : "";
+        String confirmPassword = etConfirmPassword.getText() != null ? etConfirmPassword.getText().toString().trim() : "";
+
+        if (email.isEmpty()) {
+            Toast.makeText(this, "Enter email", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (password.length() < 6) {
+            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!password.equals(confirmPassword)) {
+            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        StudentModel student = new StudentModel(email);
+                        db.collection("students").document(email).set(student)
+                                .addOnSuccessListener(aVoid -> {
+                                    Intent intent = new Intent(this, ProfileSetupActivity.class);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(intent);
+                                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Failed to create student record",
+                                            Toast.LENGTH_SHORT).show();
+                                });
+                    } else {
+                        Toast.makeText(this, "Sign up failed: " +
+                                        (task.getException() != null ? task.getException().getMessage() : "Unknown error"),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void checkRoleAndRedirect(String email) {
+        db.collection("admins").document(email).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Intent intent = new Intent(this, AdminDashboardActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                    } else {
+                        db.collection("students").document(email).get()
+                                .addOnSuccessListener(studentDoc -> {
+                                    Intent intent;
+                                    if (studentDoc.exists()) {
+                                        Boolean profileComplete = studentDoc.getBoolean("profileComplete");
+                                        if (profileComplete != null && profileComplete) {
+                                            intent = new Intent(this, StudentDashboardActivity.class);
+                                        } else {
+                                            intent = new Intent(this, ProfileSetupActivity.class);
+                                        }
+                                    } else {
+                                        intent = new Intent(this, ProfileSetupActivity.class);
+                                    }
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(intent);
+                                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Error checking profile", Toast.LENGTH_SHORT).show();
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error checking role. Try again.", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void playEntranceAnimation() {
         ImageView ivBook = findViewById(R.id.ivBookIcon);
         TextView tvTitle = findViewById(R.id.tvTitle);
         TextView tvSubtitle = findViewById(R.id.tvSubtitle);
-        Button btnSignIn = findViewById(R.id.btnSignIn);
-        Button btnSignUp = findViewById(R.id.btnSignUp);
+        View tilEmail = findViewById(R.id.tilEmail);
+        View tilPassword = findViewById(R.id.tilPassword);
 
-        // Set initial state
-        ivBook.setAlpha(0f);
+        View[] views = {ivBook, tvTitle, tvSubtitle, tilEmail, tilPassword, btnSignIn, tvToggleMode};
+
+        for (View v : views) {
+            v.setAlpha(0f);
+            v.setTranslationY(30f);
+        }
+
+        // Book icon drops down from above
         ivBook.setTranslationY(-30f);
-        tvTitle.setAlpha(0f);
-        tvTitle.setTranslationY(30f);
-        tvSubtitle.setAlpha(0f);
-        btnSignIn.setAlpha(0f);
-        btnSignIn.setScaleX(0.8f);
-        btnSignIn.setScaleY(0.8f);
-        btnSignUp.setAlpha(0f);
-        btnSignUp.setScaleX(0.8f);
-        btnSignUp.setScaleY(0.8f);
 
-        // Animate in sequence
-        ivBook.animate().alpha(1f).translationY(0f).setDuration(500).setStartDelay(200).start();
-        tvTitle.animate().alpha(1f).translationY(0f).setDuration(500).setStartDelay(400).start();
-        tvSubtitle.animate().alpha(1f).setDuration(400).setStartDelay(700).start();
-        btnSignIn.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(400).setStartDelay(900).start();
-        btnSignUp.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(400).setStartDelay(1050).start();
-    }
-
-    private void setupButtons() {
-        Button btnSignIn = findViewById(R.id.btnSignIn);
-        Button btnSignUp = findViewById(R.id.btnSignUp);
-
-        btnSignIn.setOnClickListener(v -> {
-            RecyclerViewAnimator.animateButtonClick(v);
-            v.postDelayed(() -> {
-                startActivity(new Intent(this, SignInActivity.class));
-                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-            }, 150);
-        });
-
-        btnSignUp.setOnClickListener(v -> {
-            RecyclerViewAnimator.animateButtonClick(v);
-            v.postDelayed(() -> {
-                startActivity(new Intent(this, SignUpActivity.class));
-                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-            }, 150);
-        });
+        int delay = 200;
+        for (View v : views) {
+            v.animate().alpha(1f).translationY(0f).setDuration(400).setStartDelay(delay).start();
+            delay += 120;
+        }
     }
 
     private void autoRedirect(String email) {
@@ -108,14 +227,16 @@ public class WelcomeActivity extends AppCompatActivity {
                                 })
                                 .addOnFailureListener(e -> {
                                     setContentView(R.layout.activity_welcome);
-                                    setupButtons();
+                                    initViews();
+                                    setupListeners();
                                     playEntranceAnimation();
                                 });
                     }
                 })
                 .addOnFailureListener(e -> {
                     setContentView(R.layout.activity_welcome);
-                    setupButtons();
+                    initViews();
+                    setupListeners();
                     playEntranceAnimation();
                 });
     }
